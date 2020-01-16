@@ -174,15 +174,15 @@ func newTestLeveledLoggerWithPrefix(t *testing.T, prefix string) hclog.Logger {
 }
 
 type cluster struct {
-	dirs             []string
-	stores           []*InmemStore
+	dirs             []string   //存储到磁盘目录
+	stores           []*InmemStore  //内存存储
 	fsms             []FSM
 	snaps            []*FileSnapshotStore
 	trans            []LoopbackTransport
 	rafts            []*Raft
 	t                *testing.T
 	observationCh    chan Observation
-	conf             *Config
+	conf             *Config  //raft cluster配置
 	propagateTimeout time.Duration
 	longstopTimeout  time.Duration
 	logger           *log.Logger
@@ -681,7 +681,7 @@ func makeCluster(t *testing.T, opts *MakeClusterOpts) *cluster {
 	}
 
 	c.t = t
-	var configuration Configuration
+	var configuration Configuration  //每个peer的配置集合
 
 	// Setup the stores and transports
 	for i := 0; i < opts.Peers; i++ {

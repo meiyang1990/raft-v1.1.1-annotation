@@ -128,6 +128,7 @@ type Config struct {
 	// can _understand_.
 	ProtocolVersion ProtocolVersion
 
+	//leader和follower心跳超时时间 不得低于5ms
 	// HeartbeatTimeout specifies the time in follower state without
 	// a leader before we attempt an election.
 	HeartbeatTimeout time.Duration

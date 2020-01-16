@@ -58,10 +58,11 @@ type ServerID string
 // ServerAddress is a network address for a server that a transport can contact.
 type ServerAddress string
 
+//一个raft cluster中应该至少有一个Server的ServerSuffrage为Voter
 // Server tracks the information about a single server in a configuration.
 type Server struct {
 	// Suffrage determines whether the server gets a vote.
-	Suffrage ServerSuffrage
+	Suffrage ServerSuffrage  //选举权、投票权
 	// ID is a unique string identifying this server for all time.
 	ID ServerID
 	// Address is its network address that a transport can contact.

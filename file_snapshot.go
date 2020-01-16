@@ -29,7 +29,7 @@ const (
 // FileSnapshotStore implements the SnapshotStore interface and allows
 // snapshots to be made on the local disk.
 type FileSnapshotStore struct {
-	path   string
+	path   string  //磁盘存储目录
 	retain int
 	logger *log.Logger
 }
@@ -206,7 +206,7 @@ func (f *FileSnapshotStore) Create(version SnapshotVersion, index, term uint64,
 
 // List returns available snapshots in the store.
 func (f *FileSnapshotStore) List() ([]*SnapshotMeta, error) {
-	// Get the eligible snapshots
+	// Get the eligible（合适的） snapshots
 	snapshots, err := f.getSnapshots()
 	if err != nil {
 		f.logger.Printf("[ERR] snapshot: Failed to get snapshots: %v", err)

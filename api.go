@@ -188,14 +188,14 @@ type Raft struct {
 
 // BootstrapCluster initializes a server's storage with the given cluster
 // configuration. This should only be called at the beginning of time for the
-// cluster with an identical configuration listing all Voter servers. There is
+// cluster with an identical(相同的) configuration listing all Voter servers. There is
 // no need to bootstrap Nonvoter and Staging servers.
 //
 // A cluster can only be bootstrapped once from a single participating Voter
 // server. Any further attempts to bootstrap will return an error that can be
 // safely ignored.
 //
-// One sane approach is to bootstrap a single server with a configuration
+// One sane(理智的) approach is to bootstrap a single server with a configuration
 // listing just itself as a Voter, then invoke AddVoter() on it to add other
 // servers to the cluster.
 func BootstrapCluster(conf *Config, logs LogStore, stable StableStore,
