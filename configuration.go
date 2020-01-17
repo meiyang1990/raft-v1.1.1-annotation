@@ -295,6 +295,7 @@ func nextConfiguration(current Configuration, currentIndex uint64, change config
 	return configuration, nil
 }
 
+//序列化
 // encodePeers is used to serialize a Configuration into the old peers format.
 // This is here for backwards compatibility when operating with a mix of old
 // servers and should be removed once we deprecate support for protocol version 1.

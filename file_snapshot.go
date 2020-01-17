@@ -30,8 +30,8 @@ const (
 // snapshots to be made on the local disk.
 type FileSnapshotStore struct {
 	path   string  //磁盘存储目录
-	retain int
-	logger *log.Logger
+	retain int     //快照文件可能有多个版本，retain定义最多保留几个版本
+	logger *log.Logger  //日志
 }
 
 type snapMetaSlice []*fileSnapshotMeta
@@ -206,6 +206,8 @@ func (f *FileSnapshotStore) Create(version SnapshotVersion, index, term uint64,
 
 // List returns available snapshots in the store.
 func (f *FileSnapshotStore) List() ([]*SnapshotMeta, error) {
+
+	//从磁盘文件读取快照元数据
 	// Get the eligible（合适的） snapshots
 	snapshots, err := f.getSnapshots()
 	if err != nil {
@@ -225,7 +227,7 @@ func (f *FileSnapshotStore) List() ([]*SnapshotMeta, error) {
 
 // getSnapshots returns all the known snapshots.
 func (f *FileSnapshotStore) getSnapshots() ([]*fileSnapshotMeta, error) {
-	// Get the eligible snapshots
+	// Get the eligible(合适的) snapshots
 	snapshots, err := ioutil.ReadDir(f.path)
 	if err != nil {
 		f.logger.Printf("[ERR] snapshot: Failed to scan snapshot dir: %v", err)
@@ -235,11 +237,13 @@ func (f *FileSnapshotStore) getSnapshots() ([]*fileSnapshotMeta, error) {
 	// Populate the metadata
 	var snapMeta []*fileSnapshotMeta
 	for _, snap := range snapshots {
+		//只针对目录处理，文件忽略
 		// Ignore any files
 		if !snap.IsDir() {
 			continue
 		}
 
+		//忽略临时快照目录
 		// Ignore any temporary snapshots
 		dirName := snap.Name()
 		if strings.HasSuffix(dirName, tmpSuffix) {
@@ -247,6 +251,7 @@ func (f *FileSnapshotStore) getSnapshots() ([]*fileSnapshotMeta, error) {
 			continue
 		}
 
+		//读取元数据目录
 		// Try to read the meta data
 		meta, err := f.readMeta(dirName)
 		if err != nil {
@@ -254,6 +259,7 @@ func (f *FileSnapshotStore) getSnapshots() ([]*fileSnapshotMeta, error) {
 			continue
 		}
 
+		//检查元数据版本
 		// Make sure we can understand this version.
 		if meta.Version < SnapshotVersionMin || meta.Version > SnapshotVersionMax {
 			f.logger.Printf("[WARN] snapshot: Snapshot version for %v not supported: %d", dirName, meta.Version)
@@ -270,6 +276,7 @@ func (f *FileSnapshotStore) getSnapshots() ([]*fileSnapshotMeta, error) {
 	return snapMeta, nil
 }
 
+//name 是目录而非文件
 // readMeta is used to read the meta data for a given named backup
 func (f *FileSnapshotStore) readMeta(name string) (*fileSnapshotMeta, error) {
 	// Open the meta file

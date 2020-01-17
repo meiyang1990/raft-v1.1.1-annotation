@@ -210,15 +210,19 @@ func BootstrapCluster(conf *Config, logs LogStore, stable StableStore,
 		return err
 	}
 
+	//同时检查内存存储、磁盘日志存储是否已经存在数据
 	// Make sure the cluster is in a clean state.
 	hasState, err := HasExistingState(logs, stable, snaps)
 	if err != nil {
 		return fmt.Errorf("failed to check for existing state: %v", err)
 	}
+
+	//bootstrap只能应用在新的cluter上面
 	if hasState {
 		return ErrCantBootstrap
 	}
 
+	//将当前Term设置为1
 	// Set current term to 1.
 	if err := stable.SetUint64(keyCurrentTerm, 1); err != nil {
 		return fmt.Errorf("failed to save current term: %v", err)
@@ -229,6 +233,8 @@ func BootstrapCluster(conf *Config, logs LogStore, stable StableStore,
 		Index: 1,
 		Term:  1,
 	}
+
+	//序列化为字节切片
 	if conf.ProtocolVersion < 3 {
 		entry.Type = LogRemovePeerDeprecated
 		entry.Data = encodePeers(configuration, trans)
@@ -406,6 +412,7 @@ func HasExistingState(logs LogStore, stable StableStore, snaps SnapshotStore) (b
 		return true, nil
 	}
 
+	//获取存储在磁盘的快照元数据文件
 	// Make sure we have no snapshots
 	snapshots, err := snaps.List()
 	if err != nil {
@@ -450,6 +457,7 @@ func NewRaft(conf *Config, fsm FSM, logs LogStore, stable StableStore, snaps Sna
 		return nil, fmt.Errorf("failed to load current term: %v", err)
 	}
 
+	//返回highIndex
 	// Read the index of the last log entry.
 	lastIndex, err := logs.LastIndex()
 	if err != nil {
@@ -504,6 +512,7 @@ func NewRaft(conf *Config, fsm FSM, logs LogStore, stable StableStore, snaps Sna
 		leadershipTransferCh:  make(chan *leadershipTransferFuture, 1),
 	}
 
+	//以Follower身份启动
 	// Initialize as a follower.
 	r.setState(Follower)
 
@@ -518,6 +527,7 @@ func NewRaft(conf *Config, fsm FSM, logs LogStore, stable StableStore, snaps Sna
 	r.setCurrentTerm(currentTerm)
 	r.setLastLog(lastLog.Index, lastLog.Term)
 
+	//快照恢复
 	// Attempt to restore a snapshot if there are any.
 	if err := r.restoreSnapshot(); err != nil {
 		return nil, err
@@ -561,6 +571,7 @@ func (r *Raft) restoreSnapshot() error {
 	// Try to load in order of newest to oldest
 	for _, snapshot := range snapshots {
 		if !r.conf.NoSnapshotRestoreOnStart {
+			//获取元数据
 			_, source, err := r.snapshots.Open(snapshot.ID)
 			if err != nil {
 				r.logger.Error(fmt.Sprintf("Failed to open snapshot %v: %v", snapshot.ID, err))

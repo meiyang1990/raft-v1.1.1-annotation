@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-msgpack/codec"
 )
 
+//默认Raft节点配置   仅用于测试
 // Return configurations optimized for in-memory
 func inmemConfig(t *testing.T) *Config {
 	conf := DefaultConfig()
@@ -183,7 +184,7 @@ type cluster struct {
 	t                *testing.T
 	observationCh    chan Observation
 	conf             *Config  //raft cluster配置
-	propagateTimeout time.Duration
+	propagateTimeout time.Duration //传播超时时间
 	longstopTimeout  time.Duration
 	logger           *log.Logger
 	startTime        time.Time
@@ -681,7 +682,7 @@ func makeCluster(t *testing.T, opts *MakeClusterOpts) *cluster {
 	}
 
 	c.t = t
-	var configuration Configuration  //每个peer的配置集合
+	var configuration Configuration  //所有Server的切片
 
 	// Setup the stores and transports
 	for i := 0; i < opts.Peers; i++ {
