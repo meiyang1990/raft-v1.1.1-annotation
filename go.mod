@@ -1,4 +1,4 @@
-module github.com/hashicorp/raft
+module github.com/meiyang1990/raft-v1.1.1-annotation
 
 go 1.12
 
